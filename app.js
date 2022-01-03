@@ -1,3 +1,5 @@
+//@ts-check
+
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
@@ -62,43 +64,60 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+let playerId = 0;
+const playerList = {};
+
+app.use(function (req, res, next){ 
+
+  let cookie = req.cookies.cookieName;
+  if(cookie === undefined){             ///client does not have a cookie
+
+    let randomNumber = Math.random().toString();
+    randomNumber = randomNumber.substring(2, randomNumber.length);
+
+    res.cookie('cookieName', randomNumber, { maxAge: 120000, httpOnly: false});
+    //console.log("Cookie " + randomNumber + " was created.");
+    
+    const player = new Player(playerId++);
+    const key = randomNumber;
+
+    playerList[key] = player;
+
+    console.log("A fost creat playerul " + player.id);
+
+  }
+  else{                               ///cookie exists already
+    //console.log("cookie exists", cookie);
+  }
+
+  next(); ///goes to the next middleware 
+
+});
+
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
-
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
-
 const wss = new websocket.Server({ server });
 
 let currentGame = new Game(++statTracker.onlineGames);
-let playerId = 0;
 
-wss.on("connection", (stream)=>{
-
-  const connection = stream;
-  const player = new Player(playerId++, connection);
-  console.log("S-a conectat playerul " + player.id );
-  player.connection.send(currentGame.id);
+wss.on("connection", (stream, req)=>{
   
+  const cookie = req.headers.cookie.substring(11, req.headers.cookie.length);
+  const player = playerList[cookie];
+  const connection = stream;
+
+  console.log("Player " + player.id + " s-a conectat");
+
   connection.on("close", function (code) {
     console.log("S a deconectat playerul " + player.id);
   });
 
 })
+
+
+
 
 
 

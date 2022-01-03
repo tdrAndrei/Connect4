@@ -41,6 +41,6 @@ document.getElementById("surrenderButton").addEventListener("click", (event) => 
 
 });
 
-console.log(this.socket);
+this.socket = new WebSocket('ws://localhost:3000');
 
 

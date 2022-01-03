@@ -1,8 +1,7 @@
 class Player {
 
-    constructor(playerId, stream){
+    constructor(playerId){
         this.id = playerId;
-        this.connection = stream;
         this.wins = 0;
     }
    
