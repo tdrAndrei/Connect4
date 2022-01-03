@@ -1,0 +1,138 @@
+
+html, body {
+    height: 99%;
+    font-family: 'Montrelo';
+    font-size: 1.7em;
+    overflow: hidden;
+}
+
+#screenGrid{
+   display: grid;
+   grid-template-rows: auto auto;
+   grid-template-columns: auto auto auto;
+   column-gap: 20px;
+   row-gap: 20px;
+   padding: 20px;
+}
+
+#surrenderButton{
+    display: flex;
+    width: 200px;
+    height: 50px;
+    border-radius: 10px;
+    background-color: #458cff;
+    box-shadow: inset 0 0 0 0 rgb(17, 0, 253);
+    transition: ease-out 0.3s;
+    justify-self: start;
+    align-self: center;
+    align-items:center;
+    justify-content:center;
+    font-size: 0.55em;
+    text-align: center;
+}
+
+#surrenderButton:hover{
+    box-shadow: inset 200px 0 0 0 rgb(17,0,253);
+    cursor: pointer;
+    color: black; 
+}
+
+#title{
+    display: block;
+    height: 1em;
+    width:  900px;
+    text-align: center;
+    align-self: center;
+    justify-self: center;
+}
+
+#timer{
+    display: flex;
+    width: 150px;
+    height: 50px;
+    border-radius: 10px;
+    background-color: #458cff;
+    justify-self: end;
+    justify-content: center;
+    align-items: center;
+}
+
+#youCharacter{
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: auto auto auto;
+    justify-items: center;
+    width: 15vw;
+    height: 100%;
+}
+
+#youText{
+    font-size: 1em;
+    align-self: center;
+}
+
+#youDot{
+    align-self: center;
+    height: 2em;
+    width: 2em;
+    border-radius: 50%;
+    background-color: white;
+}
+
+#youImage{
+    width: 15vw;
+    height: 80%;
+    align-self: end;
+}
+
+#gameBoard{
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    grid-gap: 5px;
+    width: 50vw;
+    height: 80vh;
+    min-height: 400px;
+    min-width: 800px;
+    background-color: #458cff;
+    justify-self: center;
+}
+
+#gameBoard > div{
+    display: block;
+    border-style: solid;
+    border-radius: 50%;
+    border-width: 15px;
+    min-width: 50px;
+    min-height: 50px;
+    place-self: center;
+    background-color: aliceblue;
+}
+
+#oppCharacter{
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: auto auto auto;
+    justify-items: center;
+    width: 15vw;
+    height: 100%;
+}
+
+#oppText{
+    font-size: 1em;
+    align-self: center;
+}
+
+#oppDot{
+    align-self: center;
+    height: 2em;
+    width: 2em;
+    border-radius: 50%;
+    background-color: white;
+}
+
+#oppImage{
+    width: 15vw;
+    height: 80%;
+    align-self: end;
+}

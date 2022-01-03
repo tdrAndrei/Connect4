@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect 4</title>
+    <link rel="stylesheet" href="stylesheets/gameScreen.css"/> 
+
+
+</head>
+
+<body>
+
+    <div id="screenGrid">
+
+        <div id="surrenderButton"> 🏳️Surrender <form id="surrender" action="/"> </form> </div>
+        <div id="title">It's your turn!</div>
+        <div id="timer">0:00</div>
+
+        <div id="youCharacter">
+            <div id="youText">You</div>
+            <div id="youDot"></div>
+            <img src="images/youDuck.png" id="youImage"> 
+        </div>
+
+        <div id="gameBoard"></div>
+
+        <div id="oppCharacter">
+            <div id="oppText">Opponent</div>
+            <div id="oppDot"></div>
+            <img src="images/oppDuck.png" id="oppImage"> 
+        </div>
+
+    </div>
+
+</body>
+
+<script src="javascripts/gameScreen.js"> </script>
+
+</html>
