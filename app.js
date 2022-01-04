@@ -85,7 +85,7 @@ app.use(function (req, res, next){
     playerList[key] = player;
 
     console.log("A fost creat playerul " + player.id);
-
+    res.redirect("/");
   }
   else{                               ///cookie exists already
     //console.log("cookie exists", cookie);
@@ -100,46 +100,107 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 const wss = new websocket.Server({ server });
 
-let currentGame = new Game(++statTracker.onlineGames);
+let currentGame = new Game();
+const gamesList = {};
 
 wss.on("connection", (stream, req)=>{
   
   const cookie = req.headers.cookie.substring(11, req.headers.cookie.length);
   const player = playerList[cookie];
   const connection = stream;
+  player.con = connection;
+  player.active = true;
+  statTracker.onlinePlayers++;
 
   console.log("Player " + player.id + " s-a conectat");
 
+  connection.on('message', (data) => {
+
+    const msg = JSON.parse(data.toString());
+
+    if( msg.url == '/' ){ //splashScreen
+      connection.send(JSON.stringify({
+
+        'onlineGames': statTracker.onlineGames,
+        'onlinePlayers' : statTracker.onlinePlayers,
+        'playerWins' : player.wins
+
+      }))
+
+    }
+    else{ //gameScreen
+
+       if(gamesList[player.id] == undefined){    ///player is not in a game
+          console.log("player " + player.id + " is searching a game");
+          currentGame.addPlayer(player);        ///add player to game
+          gamesList[player.id] = currentGame;   ///map the player to the game
+
+          if(currentGame.hasTwoConnectedPlayers()){
+
+            console.log("A game has been created");
+            statTracker.onlineGames++;        ///increment nr of ongoing games
+            currentGame.updateMove();
+
+            currentGame.playerA.con.send(JSON.stringify({
+              "game": currentGame,
+              "playerType" : "playerA"
+            }));
+            
+            currentGame.playerB.con.send(JSON.stringify({
+              "game": currentGame,
+              "playerType" : "playerB"
+            }));
+
+            currentGame = new Game();
+
+          }
+
+       }
+
+       else {
+
+          /*if(!currentGame.hasTwoConnectedPlayers()){
+            currentGame.status = "ABORTED";
+            player.con.close();
+            delete gamesList[player.id];
+            return;
+          }*/
+
+          ///2 players are in an ongoing game
+
+          const game = msg.game;
+          game.updateMove();
+          const isFinished = game.verifyIfPlayerWon();
+
+          game.playerA.con.send(JSON.stringify({
+            "game": game
+          }));
+
+          game.playerB.con.send(JSON.stringify({
+            "game": game 
+          }));
+
+          if( isFinished ) {
+            game.playerA.con.close();       ///delete the websockets
+            game.playerB.con.close();
+            
+            ///delete the game from each player
+            delete gamesList[game.playerA.id];
+            delete gamesList[game.playerB.id];
+
+          }
+
+       }
+
+    }
+  });
+
   connection.on("close", function (code) {
     console.log("S a deconectat playerul " + player.id);
+    player.active = false;
+    statTracker.onlinePlayers--;
   });
 
 })
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 module.exports = app;
-
-
-
-
-
-

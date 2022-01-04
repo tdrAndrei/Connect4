@@ -4,14 +4,12 @@ class Game {
   
 /**
  * Game constructor
- * @param {number} gameId : the game's unique id
  */
 
-constructor(gameId){
+constructor(){
 
     this.playerA = null;
     this.playerB = null;
-    this.id = gameId;
     this.gameBoard = Array(6).fill( Array(7).fill(0) );
     this.status = "0";                                       ///game is empty of players
     this.moves = null;                                      ///player's whose turn it is
@@ -47,20 +45,20 @@ constructor(gameId){
 }
 
 canITransition(from,to){
-
+    return true;
     let a,b;
 
-    if(isState(from) == false)
+    if(this.isState(from) == false)
         return false;
     else 
-        a = statusMatrix[from];
+        a = this.statusMatrix[from];
     
-    if(isState(to) == false)
+    if(this.isState(to) == false)
         return false;
     else 
-        b = statusMatrix[to];
+        b = this.statusMatrix[to];
 
-    return (statusMatrix[a][b] == 1) ; ///true if the state can change from 'from' to 'to'
+    return (this.statusMatrix[a][b] == 1) ; ///true if the state can change from 'from' to 'to'
 
 }
 
@@ -72,19 +70,19 @@ canITransition(from,to){
 
 isState(s){
 
-    return s in statusMatrix;
+    return s in this.statusOfGame;
 
 }
 
 /**
- * Updates the status of the game to 's'
+ * Updates the status of the game to s
  * @param {string} s 
  */
 updateState(s){
 
-    if(isState(s) && canITransition(this.status,s)){      ///update
+    if(this.isState(s) && this.canITransition(this.status,s)){      ///update
 
-        this.status = 's';
+        this.status = s;
 
     }
     else{
@@ -101,13 +99,34 @@ updateState(s){
  */
 
 verifyIfPlayerWon(){
-
-    if(this.status == '4')
-        playerA.wins += 1;
     
-    else if(this.status == '5')
-        playerB.wins += 1;
+    if(this.status == 'ABORTED'){
 
+        if(this.moves == this.playerA){
+            this.playerB.wins++;
+            this.winner = this.playerB;
+        }
+        else {
+            this.playerA.wins++;
+            this.winner = this.playerA;
+        }
+
+        return true;
+    }
+
+    if(this.status == '4') {
+        this.playerA.wins ++;
+        this.winner = this.playerA;
+        return true;
+    }
+
+    else if(this.status == '5') {
+        this.playerB.wins ++;
+        this.winner = this.playerB;
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -115,12 +134,14 @@ verifyIfPlayerWon(){
  */
 
 updateMove(){
+    if( this.moves == null )
+        this.moves = "playerA";
 
-    if(this.moves == this.playerA)
-        this.moves = this.playerB;
+    else if(this.moves == "playerA")
+        this.moves = "playerB";
 
-    else if(this.moves == this.playerB)
-        this.moves = this.playerA;
+    else if(this.moves == "playerB")
+        this.moves = "playerA";
 
 } 
 
@@ -143,9 +164,11 @@ addPlayer(player){
 
     if(this.status == '0'){
         this.playerA = player;
+        this.updateState("1");
     }
     else if(this.status == '1'){
         this.playerB = player;
+        this.updateState("2");
     }
     else{                                            
         return new Error('Game is full');
