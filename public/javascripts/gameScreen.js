@@ -23,25 +23,29 @@ bilutaYou.style.backgroundColor = "red";
 let bilutaOpp = document.getElementById("oppDot");
 bilutaOpp.style.backgroundColor = "blue";
 
-
-const duckSound = new Audio("../audio/duckSound.wav");
-
-/*TODO
- *Set status to game aborted and send to server
- */ 
-document.getElementById("surrenderButton").addEventListener("click", (event) => {
-    duckSound.play();
-    setTimeout(()=> {
-        document.getElementById("surrender").submit();
-    }, 1500);
-});
-
 (function setup() {
 
     const socket = new WebSocket('ws://localhost:3000');
     let playerType;
     let playerColor;
     let game;
+    const duckSound = new Audio("../audio/duckSound.wav");
+
+    /*TODO
+    *Set status to game aborted and send to server
+    */ 
+    document.getElementById("surrenderButton").addEventListener("click", () => {
+        duckSound.play();
+        setTimeout(()=> {
+            game.status = "ABORTED";
+            socket.send(JSON.stringify({
+                'url': '/game',
+                'game': game
+            }));
+
+            //document.getElementById("surrender").submit();
+        }, 1500);
+    });
 
     /*Send an initial message to the server
      *This signals the server that the client is on the game page looking for a game

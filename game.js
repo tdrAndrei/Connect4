@@ -121,7 +121,7 @@ updateState(s){
  */
 
  verifyIfPlayerWon(){
-    
+    //TODO any player can abort the game at any time so the winner isn't always the player who didn't move
     if(this.status == 'ABORTED'){
 
         if(this.moves == this.playerA){

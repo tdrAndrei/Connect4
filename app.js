@@ -76,7 +76,7 @@ app.use(function (req, res, next){
     let randomNumber = Math.random().toString();
     randomNumber = randomNumber.substring(2, randomNumber.length);
 
-    res.cookie('cookieName', randomNumber, { maxAge: 120000, httpOnly: false});
+    res.cookie('cookieName', randomNumber, { maxAge: 1800000, httpOnly: false});
     //console.log("Cookie " + randomNumber + " was created.");
     
     const player = new Player(playerId++);
@@ -88,6 +88,12 @@ app.use(function (req, res, next){
     res.redirect("/");
   }
   else{                               ///cookie exists already
+    if( playerList[cookie] == undefined ) {
+      const player = new Player(playerId++);
+      playerList[cookie] = player;
+      console.log("A fost creat playerul " + player.id);
+      res.redirect("/");
+    }
     //console.log("cookie exists", cookie);
   }
 
@@ -97,7 +103,6 @@ app.use(function (req, res, next){
 
 
 app.use('/', indexRouter);
-//app.use('/users', usersRouter);
 const wss = new websocket.Server({ server });
 
 let currentGame = new Game();
@@ -175,17 +180,22 @@ wss.on("connection", (stream, req)=>{
         * We know there must be a game object in msg
         */
        else {
-
-        //TODO after we set the aborted status in client code
-          /*if(!currentGame.hasTwoConnectedPlayers()){
-            currentGame.status = "ABORTED";
-            player.con.close();
-            delete gamesList[player.id];
+          if(!gamesList[player.id].hasTwoConnectedPlayers()){
+            //TODO add extra logic for surrender before the game started
             return;
-          }*/
+          }
+
+          //if client refreshes the page, they send only the url
+          if( msg.game == undefined ) {
+            const playerType = (player == gamesList[player.id].playerA) ? "playerA" : "playerB";
+            player.con.send(JSON.stringify({
+              "game": gamesList[player.id],
+              "playerType" : playerType
+            }));
+            return ;
+          }
 
           ///2 players are in an ongoing game
-
           const game =  gamesList[player.id];
           game.loadGame(msg.game);
 
@@ -207,7 +217,7 @@ wss.on("connection", (stream, req)=>{
             ///delete the game from each player
             delete gamesList[game.playerA.id];
             delete gamesList[game.playerB.id];
-
+            statTracker.onlineGames --;
           }
        }
     }
