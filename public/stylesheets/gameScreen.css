@@ -19,8 +19,8 @@ html, body {
     width: 200px;
     height: 50px;
     border-radius: 10px;
-    background-color: #458cff;
-    box-shadow: inset 0 0 0 0 rgb(17, 0, 253);
+    background-color: #ffd166;
+    box-shadow: inset 0 0 0 0 rgb(199, 148, 8);
     transition: ease-out 0.3s;
     justify-self: start;
     align-self: center;
@@ -31,7 +31,7 @@ html, body {
 }
 
 #surrenderButton:hover{
-    box-shadow: inset 200px 0 0 0 rgb(17,0,253);
+    box-shadow: inset 200px 0 0 0 rgb(199, 148, 8);
     cursor: pointer;
     color: black; 
 }
@@ -50,7 +50,7 @@ html, body {
     width: 150px;
     height: 50px;
     border-radius: 10px;
-    background-color: #458cff;
+    background-color: #ffd166;
     justify-self: end;
     justify-content: center;
     align-items: center;
@@ -93,7 +93,8 @@ html, body {
     height: 80vh;
     min-height: 400px;
     min-width: 800px;
-    background-color: #458cff;
+    background-color: #ffd166;
+    box-shadow: 0px 0px 8px black;
     justify-self: center;
 }
 
@@ -101,11 +102,11 @@ html, body {
     display: block;
     border-style: solid;
     border-radius: 50%;
-    border-width: 15px;
     min-width: 50px;
     min-height: 50px;
     place-self: center;
-    background-color: aliceblue;
+    background-color: rgb(255, 255, 255);
+    box-shadow: 0px 0px 8px black;
 }
 
 #oppCharacter{

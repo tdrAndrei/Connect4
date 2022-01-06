@@ -11,8 +11,7 @@
             const radius = 0.1 * Math.min(parseInt(board.style.height), parseInt(board.style.width));
             circle.style.height = radius + "px";
             circle.style.width = radius + "px";
-            circle.style.borderWidth = 0.2 * radius + "px";
-            circle.style.backgroundColor = 'aliceblue';
+            circle.style.borderWidth = 0.15 * radius + "px";
             board.appendChild(circle);
         }
     }
@@ -86,7 +85,7 @@ document.getElementById("surrenderButton").addEventListener("click", (event) => 
                         'col' : selectedColumn
                     }
 
-                    document.getElementById(move.row.toString() + move.col.toString()).style.color = playerColor; //change the color of the apropriate circle
+                    document.getElementById(move.row.toString() + move.col.toString()).style.backgroundColor = playerColor; //change the color of the apropriate circle
                     game.gameBoard[move.row][move.col] = (playerType == "playerA") ? 'A' : 'B'; //we mark the move in our game matrix
                     game.lastMove = move;   //update the last move
                    
@@ -120,9 +119,11 @@ document.getElementById("surrenderButton").addEventListener("click", (event) => 
         }       
 
         if(game.moves == playerType){   ///It's my time to move
-            console.log("M am dus aici");
+            document.getElementById("title").textContent = "It's your turn!";
             display(game); //show the gameBoard ; afisez ce e deja colorat
         }
+        else 
+            document.getElementById("title").textContent = "It's your opponent's turn!";
 
     });
     
