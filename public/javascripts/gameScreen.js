@@ -7,7 +7,6 @@
             for( let j = 0; j < 7; j ++ ) {
             let circle = document.createElement('div');
             circle.id = i.toString() + j.toString();
-            circle.class = "gameCircle";
 
             const radius = 0.1 * Math.min(parseInt(board.style.height), parseInt(board.style.width));
             circle.style.height = radius + "px";
@@ -28,9 +27,14 @@ bilutaOpp.style.backgroundColor = "blue";
 
 const duckSound = new Audio("../audio/duckSound.wav");
 
+/*TODO
+ *Set status to game aborted and send to server
+ */ 
 document.getElementById("surrenderButton").addEventListener("click", (event) => {
     duckSound.play();
-    setTimeout(()=> {document.getElementById("surrender").submit()}, 1500);
+    setTimeout(()=> {
+        document.getElementById("surrender").submit();
+    }, 1500);
 });
 
 (function setup() {
@@ -38,7 +42,11 @@ document.getElementById("surrenderButton").addEventListener("click", (event) => 
     const socket = new WebSocket('ws://localhost:3000');
     let playerType;
     let playerColor;
+    let game;
 
+    /*Send an initial message to the server
+     *This signals the server that the client is on the game page looking for a game
+     */
     socket.addEventListener('open', () => {
 
         socket.send(JSON.stringify({
@@ -47,9 +55,60 @@ document.getElementById("surrenderButton").addEventListener("click", (event) => 
 
     });
 
+    /*Add event listeners for all the circles in the game board
+     *Don't register the clicks as moves if - the game hasn't started (playerType == undefined)
+     *                                      - the game object is not initialised (game == undefined)
+     *                                      - It's not our turn to move (game.moves != playerType 
+     */ 
+    for( let i = 0; i < 6; i ++ ) {
+        for( let j = 0; j < 7; j ++ ) {
+            let circle = document.getElementById(i.toString() + j.toString());
+
+            circle.addEventListener("click", function move() {
+                if( playerType == undefined || game == undefined || game.moves != playerType )
+                    return ;
+
+                //the user can select any column
+                //we check if it's a legal move and which is the first available row 
+                let availableRow;
+                let selectedColumn = j;
+                for( let k = 5; k >= 0; k --) { 
+                    if( game.gameBoard[k][selectedColumn] == 0 ) {
+                        console.log("a clickuit");
+                        availableRow = k; 
+                        break;
+                    }
+                }
+
+                if( availableRow != null ) {
+                    const move = {
+                        'row' : availableRow,
+                        'col' : selectedColumn
+                    }
+
+                    document.getElementById(move.row.toString() + move.col.toString()).style.color = playerColor; //change the color of the apropriate circle
+                    game.gameBoard[move.row][move.col] = (playerType == "playerA") ? 'A' : 'B'; //we mark the move in our game matrix
+                    game.lastMove = move;   //update the last move
+                   
+                    console.log(game);
+                    socket.send(JSON.stringify({    //send our move back to the server
+                        'game' : game,
+                        'url' : '/game'
+                    }));
+
+                } else {
+                    console.log("Invalid selection");
+                }
+            });
+        }
+    }
+
+    /* We either receive the first message from the server that informs us which player are we
+     * or it's our turn to move
+     */ 
     socket.addEventListener('message', (event) => {
         const msg = JSON.parse(event.data.toString());
-        const game = msg.game;
+        game = msg.game;
         console.log(msg);
 
         if( playerType == undefined ) {
@@ -58,55 +117,18 @@ document.getElementById("surrenderButton").addEventListener("click", (event) => 
             const oppColor = (playerType == "playerA") ? "#4281f5" : "#fa0f0f";
             bilutaYou.style.backgroundColor = playerColor;
             bilutaOpp.style.backgroundColor = oppColor;
-        }
+        }       
 
-        for( let i = 0; i < 6; i ++ ) {
-            for( let j = 0; j < 7; j ++ ) {
-                let circle = document.getElementById(i.toString() + j.toString());
-                circle.addEventListener("click", function move(event) {
-                    if( playerType == undefined || game.moves != playerType )
-                        return ;
-
-                    let availableRow;
-                    let selectedColumn;
-                    for( let k = 5; k >= 0; k --) {
-                        if( game.gameBoard[k][j] == 0 ) {
-                            console.log("a clickuit");
-                            availableRow = k;
-                            selectedColumn = j;   
-                            break;
-                        }
-                    }
-
-                    if( selectedColumn != null ) {
-                        const move = {
-                            'row' : availableRow,
-                            'col' : selectedColumn
-                        }
-
-                        document.getElementById(move.row.toString() + move.col.toString()).style.color = playerColor;
-                        game.gameBoard[move.row][move.col] = (playerType == "playerA") ? 'A' : 'B';
-                        game.lastMove = move;
-                        console.log(game);
-                        socket.send(JSON.stringify({
-                            'game' : game,
-                            'url' : '/game'
-                        }));
-                    }
-                });
-            }
-        }
-        
-
-        if(msg.game.moves == playerType){   ///It's my time to move
+        if(game.moves == playerType){   ///It's my time to move
             console.log("M am dus aici");
-            display(game, playerType); //show the gameBoard ; afisez ce e deja colorat
+            display(game); //show the gameBoard ; afisez ce e deja colorat
         }
 
     });
-
+    
+    //Simulates the timer
+    //Only starts when both players are connected
     let secondsElapsed = 0;
-
     setInterval(() => {
 
         if(playerType != undefined){
@@ -119,9 +141,10 @@ document.getElementById("surrenderButton").addEventListener("click", (event) => 
         }
 
     }, 1000);
+
 })();
 
-function display(game, playerType) {
+function display(game) {
 
     for(let i = 0; i < 6; i++){
         for(let j = 0; j < 7; j++){

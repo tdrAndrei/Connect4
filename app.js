@@ -97,18 +97,30 @@ app.use(function (req, res, next){
 
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+//app.use('/users', usersRouter);
 const wss = new websocket.Server({ server });
 
 let currentGame = new Game();
+
+/* Very important!
+ * This object represents key/value pairs of playerId / the game they take part in
+ * if gamesList[player.id] == undefined then that player isn't involved in a game
+ */
 const gamesList = {};
 
 wss.on("connection", (stream, req)=>{
-  
-  const cookie = req.headers.cookie.substring(11, req.headers.cookie.length);
+
+  //The header was cookieName=nr, but we only need the number so we cut the prefix
+  const cookie = req.headers.cookie.substring(("cookieName=").length, req.headers.cookie.length);
+
+  //Get the player that made the request (it is indentified via it's cookie)
   const player = playerList[cookie];
+  
+  //Save the connection between server and client for further messages 
   const connection = stream;
   player.con = connection;
+
+  //Player is online
   player.active = true;
   statTracker.onlinePlayers++;
 
@@ -130,17 +142,19 @@ wss.on("connection", (stream, req)=>{
     }
     else{ //gameScreen
 
-       if(gamesList[player.id] == undefined){    ///player is not in a game
+       if (gamesList[player.id] == undefined){    ///player is not in a game
           console.log("player " + player.id + " is searching a game");
+
           currentGame.addPlayer(player);        ///add player to game
           gamesList[player.id] = currentGame;   ///map the player to the game
 
-          if(currentGame.hasTwoConnectedPlayers()){
+          if (currentGame.hasTwoConnectedPlayers()){
 
             console.log("A game has been created");
             statTracker.onlineGames++;        ///increment nr of ongoing games
             currentGame.updateMove();
-
+            
+            //inform clients that the game has started and which player they are
             currentGame.playerA.con.send(JSON.stringify({
               "game": currentGame,
               "playerType" : "playerA"
@@ -151,14 +165,18 @@ wss.on("connection", (stream, req)=>{
               "playerType" : "playerB"
             }));
 
+            //we need to initialize a new currentGame as the old one was full
             currentGame = new Game();
-
           }
-
        }
 
+       /* This else branch means that the player was already involved in a game
+        * We can receive turn updates or terminal messages from the clients
+        * We know there must be a game object in msg
+        */
        else {
 
+        //TODO after we set the aborted status in client code
           /*if(!currentGame.hasTwoConnectedPlayers()){
             currentGame.status = "ABORTED";
             player.con.close();
@@ -189,9 +207,7 @@ wss.on("connection", (stream, req)=>{
             delete gamesList[game.playerB.id];
 
           }
-
        }
-
     }
   });
 
