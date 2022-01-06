@@ -6,7 +6,7 @@ class Game {
  * Game constructor
  */
 
-constructor(){
+constructor() {
 
     this.playerA = null;
     this.playerB = null;
@@ -43,6 +43,28 @@ constructor(){
     ];
 
 }
+
+//Basically takes a game from client and puts it in a game from server; used when we receive a game from the client, but the game 
+//only contains a stringified version (JSON.stringify) with no access to methods; so we copy the attributes to a new game and we can
+//access the methods through the new game.
+
+loadGame(msg) {
+
+    this.gameBoard = msg.gameBoard;
+    this.status = msg.status;                                       
+    this.moves = msg.moves;                                      
+    this.lastMove = msg.lastMove;     
+    this.statusOfGame = msg.statusOfGame;
+    this.statusMatrix = msg.statusMatrix;
+    
+}
+
+/**
+ * Checks whether the transition from one state to another is possible, by using the statusMatrix. 
+ * @param {string} from the state to change from
+ * @param {string} to the state to change to
+ * @returns true/false if the states can change or not
+ */
 
 canITransition(from,to){
     return true;
@@ -98,7 +120,7 @@ updateState(s){
  * @returns true/false
  */
 
-verifyIfPlayerWon(){
+ verifyIfPlayerWon(){
     
     if(this.status == 'ABORTED'){
 
@@ -160,7 +182,7 @@ hasTwoConnectedPlayers(){
 /**
  * Adds a new player to the game, if the game is not full.
  */
-addPlayer(player){
+ addPlayer(player){
 
     if(this.status == '0'){
         this.playerA = player;

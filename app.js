@@ -186,7 +186,12 @@ wss.on("connection", (stream, req)=>{
 
           ///2 players are in an ongoing game
 
-          const game = msg.game;
+          const game =  gamesList[];
+          game.loadGame(msg.game);
+
+          console.log(msg.playerA);
+          console.log(msg.playerB);
+
           game.updateMove();
           const isFinished = game.verifyIfPlayerWon();
 

@@ -58,7 +58,7 @@ document.getElementById("surrenderButton").addEventListener("click", (event) => 
     /*Add event listeners for all the circles in the game board
      *Don't register the clicks as moves if - the game hasn't started (playerType == undefined)
      *                                      - the game object is not initialised (game == undefined)
-     *                                      - It's not our turn to move (game.moves != playerType 
+     *                                      - It's not our turn to move (game.moves != playerType)
      */ 
     for( let i = 0; i < 6; i ++ ) {
         for( let j = 0; j < 7; j ++ ) {
