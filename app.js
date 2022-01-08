@@ -118,7 +118,7 @@ wss.on("connection", (stream, req)=>{
   //The header was cookieName=nr, but we only need the number so we cut the prefix
   const cookie = req.headers.cookie.substring(("cookieName=").length, req.headers.cookie.length);
 
-  //Get the player that made the request (it is indentified via it's cookie)
+  //Get the player that made the request (it is identified via it's cookie)
   const player = playerList[cookie];
   
   //Save the connection between server and client for further messages 
@@ -181,11 +181,16 @@ wss.on("connection", (stream, req)=>{
         */
        else {
           if(!gamesList[player.id].hasTwoConnectedPlayers()){
-            //TODO add extra logic for surrender before the game started
+      
+            if(msg.game.status == "ABORTED"){
+              delete gamesList[player.id];
+              currentGame = new Game();
+            }
+
             return;
           }
 
-          //if client refreshes the page, they send only the url
+          //if client refreshes the page, they send only the url; the websocket closes and another one is made.
           if( msg.game == undefined ) {
             const playerType = (player == gamesList[player.id].playerA) ? "playerA" : "playerB";
             player.con.send(JSON.stringify({
@@ -202,6 +207,8 @@ wss.on("connection", (stream, req)=>{
           game.updateMove();
           const isFinished = game.verifyIfPlayerWon();
 
+          console.log(game);
+
           game.playerA.con.send(JSON.stringify({
             "game": game
           }));
@@ -211,13 +218,14 @@ wss.on("connection", (stream, req)=>{
           }));
 
           if( isFinished ) {
-            game.playerA.con.close();       ///delete the websockets
-            game.playerB.con.close();
+            //game.playerA.con.close();       ///delete the websockets
+            //game.playerB.con.close();
             
             ///delete the game from each player
             delete gamesList[game.playerA.id];
             delete gamesList[game.playerB.id];
             statTracker.onlineGames --;
+    
           }
        }
     }

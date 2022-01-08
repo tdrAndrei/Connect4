@@ -14,6 +14,7 @@ constructor() {
     this.status = "0";                                       ///game is empty of players
     this.moves = null;                                      ///player's whose turn it is
     this.lastMove = null;                                  ///the last column where a player inserted a chip
+    this.winner = null;                                   ///winner of the game
 
     this.statusOfGame = {
 
@@ -56,6 +57,7 @@ loadGame(msg) {
     this.lastMove = msg.lastMove;     
     this.statusOfGame = msg.statusOfGame;
     this.statusMatrix = msg.statusMatrix;
+    this.winner = msg.winner;
     
 }
 
@@ -120,31 +122,33 @@ updateState(s){
  * @returns true/false
  */
 
- verifyIfPlayerWon(){
-    //TODO any player can abort the game at any time so the winner isn't always the player who didn't move
+ verifyIfPlayerWon(player){
+    
     if(this.status == 'ABORTED'){
 
-        if(this.moves == this.playerA){
+        if(player == this.playerA){
             this.playerB.wins++;
-            this.winner = this.playerB;
+            this.winner = "playerB";
         }
         else {
             this.playerA.wins++;
-            this.winner = this.playerA;
+            this.winner = "playerA";
         }
-
+        this.moves = null;
         return true;
     }
 
     if(this.status == '4') {
         this.playerA.wins ++;
-        this.winner = this.playerA;
+        this.winner = "playerA";
+        this.moves = null;
         return true;
     }
 
     else if(this.status == '5') {
         this.playerB.wins ++;
-        this.winner = this.playerB;
+        this.winner = "playerB";
+        this.moves = null;
         return true;
     }
 

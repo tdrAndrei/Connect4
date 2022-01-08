@@ -91,8 +91,20 @@ bilutaOpp.style.backgroundColor = "blue";
 
                     document.getElementById(move.row.toString() + move.col.toString()).style.backgroundColor = playerColor; //change the color of the apropriate circle
                     game.gameBoard[move.row][move.col] = (playerType == "playerA") ? 'A' : 'B'; //we mark the move in our game matrix
-                    game.lastMove = move;   //update the last move
                    
+
+                    ///CHECK IF THE PLAYER WON THE GAME; if playerA was the last to move, search for 4 'A's; else, 4 'B's
+
+                    if(game.moves == "playerA")
+                        if(ifFourChips(game, "A") == true)
+                            game.status = "4";
+                    
+                    if(game.moves == "playerB")
+                         if(ifFourChips(game, "B") == true)
+                            game.status = "5";
+                    
+                    game.lastMove = move;   //update the last move
+                    
                     console.log(game);
                     socket.send(JSON.stringify({    //send our move back to the server
                         'game' : game,
@@ -120,7 +132,19 @@ bilutaOpp.style.backgroundColor = "blue";
             const oppColor = (playerType == "playerA") ? "#4281f5" : "#fa0f0f";
             bilutaYou.style.backgroundColor = playerColor;
             bilutaOpp.style.backgroundColor = oppColor;
-        }       
+        }
+        
+        if(msg.game.winner != undefined){
+
+            if(msg.game.winner == playerType)
+                document.getElementById("title").textContent = "You won!";
+            else{
+                document.getElementById("title").textContent = "You lost! :(";
+                display(game);
+            }
+            return;
+
+        }
 
         if(game.moves == playerType){   ///It's my time to move
             document.getElementById("title").textContent = "It's your turn!";
@@ -160,4 +184,40 @@ function display(game) {
                 circle.style.backgroundColor = "#4281f5";
         }
     }
+}
+
+function ifFourChips(game,char){
+    
+    const mat = game.gameBoard; 
+
+   for(let i = 0; i < 6; i++){      ///horizontally
+       for(let j = 0; j < 4; j++){
+           if(mat[i][j] == char && mat[i][j+1] == char && mat[i][j+2] == char && mat[i][j+3] == char)
+                return true;
+       }
+   }
+
+   for(let i = 0; i < 3; i++){      ///vertically
+    for(let j = 0; j < 7; j++){
+        if(mat[i][j] == char && mat[i+1][j] == char && mat[i+2][j] == char && mat[i+3][j] == char)
+             return true;
+    }
+  }
+
+  for(let i = 0; i < 3; i++){      ///diagonally left-right
+    for(let j = 0; j < 4; j++){
+        if(mat[i][j] == char && mat[i+1][j+1] == char && mat[i+2][j+2] == char && mat[i+3][j+3] == char)
+             return true;
+    }
+  }
+
+  for(let i = 0; i < 3; i++){      ///diagonally right-left
+    for(let j = 6; j > 2; j--){
+        if(mat[i][j] == char && mat[i+1][j-1] == char && mat[i+2][j-2] == char && mat[i+3][j-3] == char)
+             return true;
+    }
+  }
+
+  return false;
+
 }
