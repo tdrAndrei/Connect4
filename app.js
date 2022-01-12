@@ -77,24 +77,20 @@ app.use(function (req, res, next){
     randomNumber = randomNumber.substring(2, randomNumber.length);
 
     res.cookie('cookieName', randomNumber, { maxAge: 1800000, httpOnly: false});
-    //console.log("Cookie " + randomNumber + " was created.");
     
     const player = new Player(playerId++);
     const key = randomNumber;
 
     playerList[key] = player;
 
-    console.log("A fost creat playerul " + player.id);
     res.redirect("/");
   }
   else{                               ///cookie exists already
     if( playerList[cookie] == undefined ) {
       const player = new Player(playerId++);
       playerList[cookie] = player;
-      console.log("A fost creat playerul " + player.id);
       res.redirect("/");
     }
-    //console.log("cookie exists", cookie);
   }
 
   next(); ///goes to the next middleware 
@@ -129,13 +125,12 @@ wss.on("connection", (stream, req)=>{
   player.active = true;
   statTracker.onlinePlayers++;
 
-  console.log("Player " + player.id + " s-a conectat");
-
   connection.on('message', (data) => {
 
     const msg = JSON.parse(data.toString());
 
     if( msg.url == '/' ){ //splashScreen
+
       connection.send(JSON.stringify({
 
         'onlineGames': statTracker.onlineGames,
@@ -148,14 +143,12 @@ wss.on("connection", (stream, req)=>{
     else{ //gameScreen
 
        if (gamesList[player.id] == undefined){    ///player is not in a game
-          console.log("player " + player.id + " is searching a game");
 
           currentGame.addPlayer(player);        ///add player to game
           gamesList[player.id] = currentGame;   ///map the player to the game
 
           if (currentGame.hasTwoConnectedPlayers()){
 
-            console.log("A game has been created");
             statTracker.onlineGames++;        ///increment nr of ongoing games
             currentGame.updateMove();
             
@@ -181,7 +174,10 @@ wss.on("connection", (stream, req)=>{
         */
        else {
           if(!gamesList[player.id].hasTwoConnectedPlayers()){
-      
+            
+            if(msg.game == undefined)
+              return;
+
             if(msg.game.status == "ABORTED"){
               delete gamesList[player.id];
               currentGame = new Game();
@@ -191,23 +187,21 @@ wss.on("connection", (stream, req)=>{
           }
 
           //if client refreshes the page, they send only the url; the websocket closes and another one is made.
-          if( msg.game == undefined ) {
+          /*if( msg.game == undefined ) {
             const playerType = (player == gamesList[player.id].playerA) ? "playerA" : "playerB";
             player.con.send(JSON.stringify({
               "game": gamesList[player.id],
               "playerType" : playerType
             }));
             return ;
-          }
+          }*/
 
           ///2 players are in an ongoing game
           const game =  gamesList[player.id];
           game.loadGame(msg.game);
 
           game.updateMove();
-          const isFinished = game.verifyIfPlayerWon();
-
-          console.log(game);
+          const isFinished = game.verifyIfPlayerWon(player);
 
           game.playerA.con.send(JSON.stringify({
             "game": game
@@ -218,9 +212,6 @@ wss.on("connection", (stream, req)=>{
           }));
 
           if( isFinished ) {
-            //game.playerA.con.close();       ///delete the websockets
-            //game.playerB.con.close();
-            
             ///delete the game from each player
             delete gamesList[game.playerA.id];
             delete gamesList[game.playerB.id];
@@ -232,7 +223,6 @@ wss.on("connection", (stream, req)=>{
   });
 
   connection.on("close", function (code) {
-    console.log("S a deconectat playerul " + player.id);
     player.active = false;
     statTracker.onlinePlayers--;
   });

@@ -28,22 +28,14 @@ bilutaOpp.style.backgroundColor = "blue";
     const socket = new WebSocket('ws://localhost:3000');
     let playerType;
     let playerColor;
-    let game;
+    let game = {};
     const duckSound = new Audio("../audio/duckSound.wav");
 
-    /*TODO
-    *Set status to game aborted and send to server
-    */ 
     document.getElementById("surrenderButton").addEventListener("click", () => {
         duckSound.play();
         setTimeout(()=> {
-            game.status = "ABORTED";
-            socket.send(JSON.stringify({
-                'url': '/game',
-                'game': game
-            }));
-
-            //document.getElementById("surrender").submit();
+            //abortGame(game, socket);
+            getToHomePage();
         }, 1500);
     });
 
@@ -142,8 +134,13 @@ bilutaOpp.style.backgroundColor = "blue";
                 document.getElementById("title").textContent = "You lost! :(";
                 display(game);
             }
+            
+            sleep(5000).then( () => {
+                getToHomePage();
+                
+            });
+            
             return;
-
         }
 
         if(game.moves == playerType){   ///It's my time to move
@@ -155,6 +152,11 @@ bilutaOpp.style.backgroundColor = "blue";
 
     });
     
+    window.addEventListener("beforeunload", () => {
+        abortGame(game, socket);
+        getToHomePage();
+    });
+
     //Simulates the timer
     //Only starts when both players are connected
     let secondsElapsed = 0;
@@ -172,6 +174,22 @@ bilutaOpp.style.backgroundColor = "blue";
     }, 1000);
 
 })();
+
+function getToHomePage() {
+    //wait 1 sec
+    document.getElementById("surrender").submit();
+}
+
+function abortGame(game, socket) {
+    if( game.winner != undefined )
+                return ;
+
+    game.status = "ABORTED";
+    socket.send(JSON.stringify({
+        'url': '/game',
+        'game': game
+    }));
+}
 
 function display(game) {
 
@@ -220,4 +238,8 @@ function ifFourChips(game,char){
 
   return false;
 
+}
+
+function sleep (time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
 }
