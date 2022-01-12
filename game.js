@@ -21,7 +21,7 @@ constructor() {
         "0" : 0,                ///no players in game
         "1" : 1,               ///1 player in game
         "2" : 2,              ///2 players in game => ongoing
-        "4_CHIPS" : 3,       ///4 chips of the same color have formed a line
+        "DRAW" : 3,          ///The game is a draw
         "A" : 4,            ///playerA won
         "B" : 5,           ///playerB won
         "ABORTED" : 6     ///game aborted
@@ -34,9 +34,9 @@ constructor() {
     this.statusMatrix = [
     
         [0, 1, 0, 0, 0, 0, 0],      //0 
-        [1, 0, 1, 0, 0, 0, 0],     //1 
+        [1, 0, 1, 0, 0, 0, 1],     //1 
         [0, 0, 0, 1, 0, 0, 1],    //2  
-        [0, 0, 0, 0, 1, 1, 1],   //4_CHIPS
+        [0, 0, 0, 0, 0, 0, 0],   //DRAW
         [0, 0, 0, 0, 0, 0, 0],  //A WON
         [0, 0, 0, 0, 0, 0, 0], //B WON
         [0, 0, 0, 0, 0, 0, 0] //ABORTED
@@ -124,6 +124,12 @@ updateState(s){
 
  verifyIfPlayerWon(player){
     
+    if(this.status == 'DRAW') {
+        this.moves = null;
+        this.winner = "DRAW";
+        return true;
+    }
+
     if(this.status == 'ABORTED'){
 
         if(player == this.playerA){
@@ -138,14 +144,14 @@ updateState(s){
         return true;
     }
 
-    if(this.status == '4') {
+    if(this.status == 'A') {
         this.playerA.wins ++;
         this.winner = "playerA";
         this.moves = null;
         return true;
     }
 
-    else if(this.status == '5') {
+    else if(this.status == 'B') {
         this.playerB.wins ++;
         this.winner = "playerB";
         this.moves = null;

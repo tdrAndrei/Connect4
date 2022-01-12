@@ -89,15 +89,17 @@ bilutaOpp.style.backgroundColor = "blue";
 
                     if(game.moves == "playerA")
                         if(ifFourChips(game, "A") == true)
-                            game.status = "4";
+                            game.status = "A";
                     
                     if(game.moves == "playerB")
                          if(ifFourChips(game, "B") == true)
-                            game.status = "5";
+                            game.status = "B";
                     
                     game.lastMove = move;   //update the last move
                     
-                    console.log(game);
+                    if( game.status != "A" && game.status != "B" && isDraw(game) )
+                        game.status = "DRAW";
+
                     socket.send(JSON.stringify({    //send our move back to the server
                         'game' : game,
                         'url' : '/game'
@@ -128,7 +130,10 @@ bilutaOpp.style.backgroundColor = "blue";
         
         if(msg.game.winner != undefined){
 
-            if(msg.game.winner == playerType)
+            if(msg.game.winner == "DRAW") {
+                document.getElementById("title").textContent = "It's a draw!";
+            }
+            else if(msg.game.winner == playerType)
                 document.getElementById("title").textContent = "You won!";
             else{
                 document.getElementById("title").textContent = "You lost! :(";
@@ -238,6 +243,18 @@ function ifFourChips(game,char){
 
   return false;
 
+}
+
+function isDraw(game) {
+    let nr = 0;
+    for( let i = 0; i < 6; i ++ ) {
+        for( let j = 0; j < 7; j ++ ) {
+            if( game.gameBoard[i][j] == 0 )
+                nr ++;
+        }
+    }
+
+    return (nr == 0);
 }
 
 function sleep (time) {
