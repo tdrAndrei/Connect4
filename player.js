@@ -4,6 +4,7 @@ class Player {
         this.id = playerId;
         this.wins = 0;
         this.active = false;
+        this.con = null;
     }
    
 }

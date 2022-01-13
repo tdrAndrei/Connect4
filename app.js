@@ -119,7 +119,7 @@ wss.on("connection", (stream, req)=>{
   
   //Save the connection between server and client for further messages 
   const connection = stream;
-  player.con = connection;
+  player.con = stream;
 
   //Player is online
   player.active = true;
@@ -153,15 +153,16 @@ wss.on("connection", (stream, req)=>{
             currentGame.updateMove();
             
             //inform clients that the game has started and which player they are
-            currentGame.playerA.con.send(JSON.stringify({
+            let msgString1 = JSON.stringify({
               "game": currentGame,
               "playerType" : "playerA"
-            }));
-            
-            currentGame.playerB.con.send(JSON.stringify({
+            });
+            let msgString2 = JSON.stringify({
               "game": currentGame,
               "playerType" : "playerB"
-            }));
+            });
+            currentGame.playerA.con.send(msgString1);
+            currentGame.playerB.con.send(msgString2);
 
             //we need to initialize a new currentGame as the old one was full
             currentGame = new Game();
@@ -186,16 +187,6 @@ wss.on("connection", (stream, req)=>{
             return;
           }
 
-          //if client refreshes the page, they send only the url; the websocket closes and another one is made.
-          /*if( msg.game == undefined ) {
-            const playerType = (player == gamesList[player.id].playerA) ? "playerA" : "playerB";
-            player.con.send(JSON.stringify({
-              "game": gamesList[player.id],
-              "playerType" : playerType
-            }));
-            return ;
-          }*/
-
           ///2 players are in an ongoing game
           const game =  gamesList[player.id];
           game.loadGame(msg.game);
@@ -203,13 +194,12 @@ wss.on("connection", (stream, req)=>{
           game.updateMove();
           const isFinished = game.verifyIfPlayerWon(player);
 
-          game.playerA.con.send(JSON.stringify({
+          let msgString = JSON.stringify({
             "game": game
-          }));
+          })
+          game.playerA.con.send(msgString);
 
-          game.playerB.con.send(JSON.stringify({
-            "game": game 
-          }));
+          game.playerB.con.send(msgString);
 
           if( isFinished ) {
             ///delete the game from each player
