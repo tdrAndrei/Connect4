@@ -1,9 +1,6 @@
 //@ts-check
 
 let socket = new WebSocket('ws://localhost:3000');
-let playerType = undefined;
-let playerColor = undefined;
-let game = {};
 let duckSound = new Audio("../audio/duckSound.wav");
 
 
@@ -16,11 +13,14 @@ let UIHandler = (function() {
     bilutaOpp.style.backgroundColor = "blue";
 
     let setupBoard = () => {
+
         let board = document.getElementById('gameBoard');
         board.style.height = 0.8 * window.innerHeight + "px";
         board.style.width = 0.5 * window.innerWidth + "px";
+
         for( let i = 0; i < 6; i ++ ) {
             for( let j = 0; j < 7; j ++ ) {
+
                 let circle = document.createElement('div');
                 circle.id = i.toString() + j.toString();
 
@@ -29,81 +29,34 @@ let UIHandler = (function() {
                 circle.style.width = radius + "px";
                 circle.style.borderWidth = 0.15 * radius + "px";
                 
-               /*Add event listeners for all the circles in the game board
-                *Don't register the clicks as moves if - the game hasn't started (playerType == undefined)
-                *                                      - the game object is not initialised (game == undefined)
-                *                                      - It's not our turn to move (game.moves != playerType)
-                */ 
                 circle.addEventListener("click", function move() {
-                
-                    if( playerType == undefined || game == undefined || game.moves != playerType )
-                        return ;
-
-                    //the user can select any column
-                    //we check if it's a legal move and which is the first available row 
-                    let availableRow;
-                    let selectedColumn = j;
-                    for( let k = 5; k >= 0; k --) { 
-                        if( game.gameBoard[k][selectedColumn] == 0 ) {
-                            console.log("a clickuit");
-                            availableRow = k; 
-                            break;
-                        }
-                    }
-
-                    if( availableRow != null ) {
-                        const move = {
-                            'row' : availableRow,
-                            'col' : selectedColumn
-                        }
-
-                        document.getElementById(move.row.toString() + move.col.toString()).style.backgroundColor = playerColor; //change the color of the apropriate circle
-                        game.gameBoard[move.row][move.col] = (playerType == "playerA") ? 'A' : 'B'; //we mark the move in our game matrix
                     
+                    GameLogic.makeMove(j);
 
-                        ///CHECK IF THE PLAYER WON THE GAME; if playerA was the last to move, search for 4 'A's; else, 4 'B's
-
-                        if(game.moves == "playerA")
-                            if(GameLogic.ifFourChips("A") == true)
-                                game.status = "A";
-                        
-                        if(game.moves == "playerB")
-                            if(GameLogic.ifFourChips("B") == true)
-                                game.status = "B";
-                        
-                        game.lastMove = move;   //update the last move
-                        
-                        if( game.status != "A" && game.status != "B" && GameLogic.isDraw() )
-                            game.status = "DRAW";
-
-                        socket.send(JSON.stringify({    //send our move back to the server
-                            'game' : game,
-                            'url' : '/game'
-                        }));
-
-                    } else {
-                        console.log("Invalid selection");
-                    }
                 });
 
                 board.appendChild(circle);
             }
         }
+
     }
 
     let setupSurrender = () => {
+
         document.getElementById("surrenderButton").addEventListener("click", () => {
             duckSound.play();
             setTimeout(()=> {
                 getToHomePage();
             }, 1500);
         });
+
     }
 
     //Simulates the timer
     //Only starts when both players are connected
 
     let setupTimer = () => {
+
         let secondsElapsed = 0;
         setInterval(() => {
 
@@ -124,6 +77,7 @@ let UIHandler = (function() {
         setupSurrender: setupSurrender,
         setupTimer: setupTimer
     }
+
 })();
 
 
@@ -149,16 +103,11 @@ let UIHandler = (function() {
      */ 
     socket.addEventListener('message', (event) => {
         const msg = JSON.parse(event.data.toString());
-        game = msg.game;
-        console.log(msg);
+        GameLogic.game = msg.game;
+        console.log(GameLogic.game);
 
-        if( playerType == undefined ) {
-            playerType = msg.playerType;
-            playerColor = (playerType == "playerA") ? "#fa0f0f" : "#4281f5";
-            const oppColor = (playerType == "playerA") ? "#4281f5" : "#fa0f0f";
-            UIHandler.bilutaYou.style.backgroundColor = playerColor;
-            UIHandler.bilutaOpp.style.backgroundColor = oppColor;
-            UIHandler.setupTimer();
+        if( GameLogic.playerType == undefined ) {
+           GameLogic.setPlayerType(msg.playerType);
         }
         
         if(msg.game.winner != undefined){
@@ -166,7 +115,7 @@ let UIHandler = (function() {
             if(msg.game.winner == "DRAW") {
                 document.getElementById("title").textContent = "It's a draw!";
             }
-            else if(msg.game.winner == playerType)
+            else if(msg.game.winner == GameLogic.playerType)
                 document.getElementById("title").textContent = "You won!";
             else{
                 document.getElementById("title").textContent = "You lost! :(";
@@ -181,7 +130,7 @@ let UIHandler = (function() {
             return;
         }
 
-        if(game.moves == playerType){   ///It's my time to move
+        if(GameLogic.game.moves == GameLogic.playerType){   ///It's my time to move
             document.getElementById("title").textContent = "It's your turn!";
             GameLogic.display(); //show the gameBoard ; afisez ce e deja colorat
         }
@@ -199,32 +148,108 @@ let UIHandler = (function() {
 
 let GameLogic = ( () => {
 
-    let abortGame = () => {
-        if( game.winner != undefined )
+    let playerType = undefined;
+    let playerColor = undefined;
+    let game = {};
+
+   /*Add event listeners for all the circles in the game board
+    *Don't register the clicks as moves if - the game hasn't started (playerType == undefined)
+    *                                      - the game object is not initialised (game == undefined)
+    *                                      - It's not our turn to move (game.moves != playerType)
+    */ 
+
+    function makeMove(selectedColumn) {
+
+        if( this.playerType == undefined || this.game == undefined || this.game.moves != this.playerType )
+            return ;
+
+        //the user can select any column
+        //we check if it's a legal move and which is the first available row 
+        let availableRow;
+
+        for( let k = 5; k >= 0; k --) { 
+            if( this.game.gameBoard[k][selectedColumn] == 0 ) {
+                console.log("a clickuit");
+                availableRow = k; 
+                break;
+            }
+        }
+
+        if( availableRow != null ) {
+            const move = {
+                'row' : availableRow,
+                'col' : selectedColumn
+            }
+
+            document.getElementById(move.row.toString() + move.col.toString()).style.backgroundColor = this.playerColor; //change the color of the apropriate circle
+            this.game.gameBoard[move.row][move.col] = (this.playerType == "playerA") ? 'A' : 'B'; //we mark the move in our game matrix
+        
+
+            ///CHECK IF THE PLAYER WON THE GAME; if playerA was the last to move, search for 4 'A's; else, 4 'B's
+
+            if(this.game.moves == "playerA")
+                if(this.ifFourChips("A") == true)
+                    this.game.status = "A";
+            
+            if(this.game.moves == "playerB")
+                if(this.ifFourChips("B") == true)
+                    this.game.status = "B";
+            
+            this.game.lastMove = move;   //update the last move
+            
+            if( this.game.status != "A" && this.game.status != "B" && this.isDraw() )
+                this.game.status = "DRAW";
+
+            socket.send(JSON.stringify({    //send our move back to the server
+                'game' : this.game,
+                'url' : '/game'
+            }));
+
+        } else {
+            console.log("Invalid selection");
+        }
+
+    }
+
+    function setPlayerType(playerType) {
+
+        this.playerType = playerType;
+        
+        this.playerColor = (this.playerType == "playerA") ? "#fa0f0f" : "#4281f5";
+        const oppColor = (this.playerType == "playerA") ? "#4281f5" : "#fa0f0f";
+        
+        UIHandler.bilutaYou.style.backgroundColor = this.playerColor;
+        UIHandler.bilutaOpp.style.backgroundColor = oppColor;
+        UIHandler.setupTimer();
+
+    }
+
+    function abortGame() {
+        if( this.game.winner != undefined )
                     return ;
     
-        game.status = "ABORTED";
+        this.game.status = "ABORTED";
         socket.send(JSON.stringify({
             'url': '/game',
-            'game': game
+            'game': this.game
         }));
     }
 
-    let display = () => {
+    function display() {
         for(let i = 0; i < 6; i++){
             for(let j = 0; j < 7; j++){
                 let circle = document.getElementById(i.toString() + j.toString());
-                if(game.gameBoard[i][j] == 'A')
+                if(this.game.gameBoard[i][j] == 'A')
                     circle.style.backgroundColor = "#fa0f0f";
-                else if( game.gameBoard[i][j] == 'B' )
+                else if(this.game.gameBoard[i][j] == 'B' )
                     circle.style.backgroundColor = "#4281f5";
             }
         }
     }
 
-    let ifFourChips = (char) => {
+    function ifFourChips(char) {
     
-       const mat = game.gameBoard; 
+       const mat = this.game.gameBoard; 
     
        for(let i = 0; i < 6; i++){      ///horizontally
            for(let j = 0; j < 4; j++){
@@ -258,11 +283,11 @@ let GameLogic = ( () => {
     
     }
     
-    let isDraw = () => {
+    function isDraw() {
         let nr = 0;
         for( let i = 0; i < 6; i ++ ) {
             for( let j = 0; j < 7; j ++ ) {
-                if( game.gameBoard[i][j] == 0 )
+                if( this.game.gameBoard[i][j] == 0 )
                     nr ++;
             }
         }
@@ -271,6 +296,11 @@ let GameLogic = ( () => {
     }
 
     return {
+        game: game,
+        playerType: playerType,
+        playerColor: playerColor,
+        makeMove: makeMove,
+        setPlayerType: setPlayerType,
         abortGame: abortGame,
         display: display,
         ifFourChips: ifFourChips,
@@ -278,7 +308,9 @@ let GameLogic = ( () => {
     }
 })();
 
+
 function getToHomePage() {
+    // @ts-ignore
     document.getElementById("surrender").submit();
 }
 
