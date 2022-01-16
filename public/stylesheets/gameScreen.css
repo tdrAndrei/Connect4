@@ -30,6 +30,10 @@ html, body {
     text-align: center;
 }
 
+#surrenderButton::before{
+    content: none;
+}
+
 #surrenderButton:hover{
     box-shadow: inset 200px 0 0 0 rgb(199, 148, 8);
     cursor: pointer;
@@ -39,7 +43,7 @@ html, body {
 #title{
     display: block;
     height: 1em;
-    width:  900px;
+    width:  800px;
     text-align: center;
     align-self: center;
     justify-self: center;

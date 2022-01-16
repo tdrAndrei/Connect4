@@ -2,3 +2,22 @@
     font-family: 'Montrelo';
     src: url('/pages/Montrelo.ttf');
 }
+
+@media (max-width: 1366px), (max-height: 700px) {
+    body::before {  
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      font-family: 'Montrelo';
+      font-size: 20px;
+      color: rgb(47, 130, 255);
+      padding: 20px;
+      content: "Your window is too small (at least 1366x768px is expected) to play this game.";
+      text-align: center;
+      background-color: rgb(255, 255, 255);
+      z-index: 100;
+    }
+    
+  }
