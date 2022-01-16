@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title> Connect 4 </title>
+    <link rel="stylesheet" href="stylesheets/splashScreen.css"/>
+    <link rel="stylesheet" href="stylesheets/style.css"/>
+
+</head>
+
+<body>
+
+    <div id="alignGrid">
+        <div id="screenGrid">
+            <div id="title">
+                <span> C </span> 
+                <span> O </span>
+                <span> N </span>
+                <span> N </span>
+                <span> E </span>
+                <span> C </span>
+                <span> T </span>
+                <span> 4 </span>
+            </div>
+
+            <div id="stats"> 
+
+                <div class="statsItems"> <strong> ONLINE PLAYERS <br> <div id="onlinePlayers"> <%= onlinePlayers%> </div>  </strong> </div>
+                <div class="statsItems"> <strong> ONLINE GAMES <br> <div id="onlineGames"> <%= onlineGames%> </div> </strong> </div>
+                <div class="statsItems"> <strong> YOUR WINS <br> <div id="yourWins"> </div> </strong> </div>
+
+            </div>
+
+            <img src= "images/duck.png" id="centerDuck">
+
+            <img src= "images/boardGame.png" id="centerBoardGame">
+
+            <div id="playButton"> PLAY <form id="theGame" action="/game"> </form> </div>
+            <div id="rulesButton"> RULES <form id="theRules" action="/rules"> </form> </div>
+
+        </div>
+    </div>
+
+</body>
+
+<script src="javascripts/splashScreen.js"> </script>
+
+</html>

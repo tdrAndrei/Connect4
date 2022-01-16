@@ -1,8 +1,7 @@
 //@ts-check
 
 let socket = new WebSocket('ws://localhost:3000');
-let duckSound = new Audio("../audio/duckSound.wav");
-
+let music = new Audio("../audio/gameScreenMusic.mp4");
 
 let UIHandler = (function() {
     
@@ -11,6 +10,12 @@ let UIHandler = (function() {
 
     let bilutaOpp = document.getElementById("oppDot");
     bilutaOpp.style.backgroundColor = "blue";
+
+    music.volume = 0.4;
+    music.play();
+    music.onended = () => {
+        music.play();
+    }
 
     let setupBoard = () => {
 
@@ -23,6 +28,7 @@ let UIHandler = (function() {
 
                 let circle = document.createElement('div');
                 circle.id = i.toString() + j.toString();
+                circle.classList.add("circle");
 
                 const radius = 0.1 * Math.min(parseInt(board.style.height), parseInt(board.style.width));
                 circle.style.height = radius + "px";
@@ -31,10 +37,32 @@ let UIHandler = (function() {
                 
                 circle.addEventListener("click", function move() {
                     
-                    GameLogic.makeMove(j);
+                    const move = GameLogic.makeMove(j);
+                    let actualCircle = document.getElementById(move.row.toString() + move.col.toString());
+                    
+                    actualCircle.classList.remove("circleHover");
+                    actualCircle.classList.add("circleClick");
+                    actualCircle.addEventListener("animationend", () => {
+                        actualCircle.style.backgroundColor = GameLogic.playerColor;
+                        actualCircle.classList.remove("circleClick");
+                    })
 
                 });
+                
+                circle.addEventListener("mouseover", () => {
+                    const row = GameLogic.getAvailableRow(j);
+                    let actualCircle = document.getElementById(row.toString() + j.toString());
+                    if(GameLogic.playerType == GameLogic.game.moves && GameLogic.playerType != undefined)
+                        actualCircle.classList.add("circleHover");
+                })
 
+                circle.addEventListener("mouseout", () => {
+                    const row = GameLogic.getAvailableRow(j);
+                    let actualCircle = document.getElementById(row.toString() + j.toString());
+                    actualCircle.classList.remove("circleHover");
+                })
+            
+               
                 board.appendChild(circle);
             }
         }
@@ -44,10 +72,7 @@ let UIHandler = (function() {
     let setupSurrender = () => {
 
         document.getElementById("surrenderButton").addEventListener("click", () => {
-            duckSound.play();
-            setTimeout(()=> {
                 getToHomePage();
-            }, 1500);
         });
 
     }
@@ -104,7 +129,6 @@ let UIHandler = (function() {
     socket.addEventListener('message', (event) => {
         const msg = JSON.parse(event.data.toString());
         GameLogic.game = msg.game;
-        console.log(GameLogic.game);
 
         if( GameLogic.playerType == undefined ) {
            GameLogic.setPlayerType(msg.playerType);
@@ -165,23 +189,14 @@ let GameLogic = ( () => {
 
         //the user can select any column
         //we check if it's a legal move and which is the first available row 
-        let availableRow;
-
-        for( let k = 5; k >= 0; k --) { 
-            if( this.game.gameBoard[k][selectedColumn] == 0 ) {
-                console.log("a clickuit");
-                availableRow = k; 
-                break;
-            }
-        }
-
+        
+        let availableRow = this.getAvailableRow(selectedColumn);
         if( availableRow != null ) {
             const move = {
                 'row' : availableRow,
                 'col' : selectedColumn
             }
 
-            document.getElementById(move.row.toString() + move.col.toString()).style.backgroundColor = this.playerColor; //change the color of the apropriate circle
             this.game.gameBoard[move.row][move.col] = (this.playerType == "playerA") ? 'A' : 'B'; //we mark the move in our game matrix
         
 
@@ -205,10 +220,25 @@ let GameLogic = ( () => {
                 'url' : '/game'
             }));
 
+            return move;
+
         } else {
             console.log("Invalid selection");
         }
 
+    }
+
+    function getAvailableRow(selectedColumn) {
+        let availableRow;
+
+        for( let k = 5; k >= 0; k --) { 
+            if( this.game.gameBoard[k][selectedColumn] == 0 ) {
+                availableRow = k; 
+                break;
+            }
+        }
+
+        return availableRow;
     }
 
     function setPlayerType(playerType) {
@@ -216,10 +246,16 @@ let GameLogic = ( () => {
         this.playerType = playerType;
         
         this.playerColor = (this.playerType == "playerA") ? "#fa0f0f" : "#4281f5";
+        const hoverColor = (this.playerType == "playerA") ? "#fa7a7a" : "#94baff";
+
         const oppColor = (this.playerType == "playerA") ? "#4281f5" : "#fa0f0f";
         
         UIHandler.bilutaYou.style.backgroundColor = this.playerColor;
         UIHandler.bilutaOpp.style.backgroundColor = oppColor;
+        
+        document.documentElement.style.setProperty('--playerColor', this.playerColor);
+        document.documentElement.style.setProperty('--playerColorHover', hoverColor);
+        
         UIHandler.setupTimer();
 
     }
@@ -300,6 +336,7 @@ let GameLogic = ( () => {
         playerType: playerType,
         playerColor: playerColor,
         makeMove: makeMove,
+        getAvailableRow: getAvailableRow,
         setPlayerType: setPlayerType,
         abortGame: abortGame,
         display: display,

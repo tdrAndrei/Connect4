@@ -1,18 +1,23 @@
 
 const duckSound = new Audio("../audio/duckSound.wav");
+const music = new Audio("../audio/splashScreenAudio.mp3");
+
+music.volume = 0.4;
+music.play();
+music.onended = () => {
+    music.play();
+}
+
 
 document.getElementById("playButton").addEventListener("click", (event) => {
-
-    duckSound.play();
-    setTimeout(()=> document.getElementById("theGame").submit(),1500); 
-
+    document.getElementById("theGame").submit(); 
 })
 
 document.getElementById("rulesButton").addEventListener("click", (event) => {
     document.getElementById("theRules").submit();
 })
 
-this.socket = new WebSocket("ws://localhost:3000");
+let socket = new WebSocket("ws://localhost:3000");
 socket.addEventListener('open', () => {
     socket.send(JSON.stringify({'url': '/'}));
     setInterval( () =>{

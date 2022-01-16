@@ -8,7 +8,6 @@ const http = require('http');
 const websocket = require('ws');
 
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
 const Game = require('./game');
 const statTracker = require('./statTracker');
 const Player = require('./player');

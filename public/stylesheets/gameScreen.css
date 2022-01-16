@@ -1,3 +1,8 @@
+:root{
+    --playerColor: white;
+    --playerColorHover: white;
+}
+
 html, body {
     height: 99%;
     font-family: 'Montrelo';
@@ -102,7 +107,7 @@ html, body {
     justify-self: center;
 }
 
-#gameBoard > div{
+.circle{
     display: block;
     border-style: solid;
     border-radius: 50%;
@@ -111,6 +116,20 @@ html, body {
     place-self: center;
     background-color: rgb(255, 255, 255);
     box-shadow: 0px 0px 8px black;
+}
+
+.circleHover{
+    background-color: var(--playerColorHover);
+    transition: 0.5s;
+}
+
+.circleClick{
+    animation: AnimClick 0.5s;
+}
+
+@keyframes AnimClick {
+    from{ background-color: white;}
+    to{background-color: var(--playerColor);}
 }
 
 #oppCharacter{

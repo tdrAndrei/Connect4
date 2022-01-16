@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var statTracker = require("../statTracker");
 
 /* GET GAME PAGE. */
 router.get('/game', function(req, res, next) {
@@ -9,7 +10,11 @@ router.get('/game', function(req, res, next) {
 /*GET SPLASH SCREEN. */
 
 router.get('/', function(req, res, next) {
-  res.sendFile("splashScreen.html", { root: "./public/pages" });
+  //res.sendFile("splashScreen.html", { root: "./public/pages" });
+  res.render("splashScreen.ejs", {
+    onlineGames: statTracker.onlineGames,
+    onlinePlayers: statTracker.onlinePlayers
+  })
 });
 
 /* GET RULES PAGE. */
